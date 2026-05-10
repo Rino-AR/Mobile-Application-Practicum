@@ -16,7 +16,7 @@ class ResultPage extends StatelessWidget {
   String _getKategori() {
     if (bmi < 18.5) return 'Kurus';
     if (bmi < 25.0) return 'Normal';
-    if (bmi < 30.0) return 'Normal';
+    if (bmi < 30.0) return 'Gemuk / Overweight'; // Logika BMI diperbaiki di sini
     return "Obesitas";
   }
 
@@ -34,16 +34,24 @@ class ResultPage extends StatelessWidget {
             SizedBox(height: 120),
             Text(
               "$nama",
-              style: TextStyle(fontSize: 30),
+              style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 10),
+            // Menampilkan data yang sebelumnya dikirim tapi tidak dimanfaatkan
+            Text(
+              "$gender | Usia: $kategori",
+              style: TextStyle(fontSize: 18, color: Colors.grey[600]),
             ),
             SizedBox(height: 30),
             Text(
               "${bmi.toStringAsFixed(1)}",
               style: TextStyle(
                 fontSize: 50,
+                color: Colors.blue,
+                fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 30),
+            SizedBox(height: 20),
             Text(
               _getKategori(),
               style: TextStyle(
@@ -52,9 +60,7 @@ class ResultPage extends StatelessWidget {
             ),
             GestureDetector(
               onTap: () {
-                Navigator.pop(
-                  context,
-                );
+                Navigator.pop(context);
               },
               child: Container(
                 margin: EdgeInsets.only(top: 50, left: 24, right: 24),

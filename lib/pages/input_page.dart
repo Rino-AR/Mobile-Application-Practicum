@@ -26,6 +26,15 @@ class _InputPageState extends State<InputPage> {
     'Dewasa',
   ];
 
+  @override
+  void dispose() {
+    // Menghindari kebocoran memori (memory leak) saat halaman ditutup
+    _nameController.dispose();
+    _weightController.dispose();
+    _heightController.dispose();
+    super.dispose();
+  }
+
   String _selectedGender = 'Laki-laki';
   @override
   Widget build(BuildContext context) {
@@ -159,24 +168,35 @@ class _InputPageState extends State<InputPage> {
                   ),
                 ],
               ),
-              GestureDetector(
+              GestureDetector( //perbaharui tombol hitung
                 onTap: () {
                   if (_formKey.currentState!.validate()) {
                     final nama = _nameController.text;
-                    final berat = double.parse(_weightController.text);
-                    final tinggi = double.parse(_heightController.text) / 100;
-                    final bmi = berat / (tinggi * tinggi);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ResultPage(
-                          nama: nama,
-                          bmi: bmi,
-                          gender: _selectedGender,
-                          kategori: _selectedCategory!,
+                    // Menggunakan tryParse agar lebih aman dari crash
+                    final berat = double.tryParse(_weightController.text) ?? 0.0;
+                    final tinggiCm = double.tryParse(_heightController.text) ?? 0.0;
+                    
+                    // Menghindari pembagian dengan nol (Error Infinity / NaN)
+                    if (tinggiCm > 0) {
+                      final tinggiM = tinggiCm / 100;
+                      final bmi = berat / (tinggiM * tinggiM);
+                      
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ResultPage(
+                            nama: nama,
+                            bmi: bmi,
+                            gender: _selectedGender,
+                            kategori: _selectedCategory!,
+                          ),
                         ),
-                      ),
-                    );
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Tinggi badan tidak valid')),
+                      );
+                    }
                   }
                 },
                 child: Container(

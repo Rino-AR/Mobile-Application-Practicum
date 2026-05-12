@@ -1,228 +1,100 @@
-// ignore_for_file: prefer_const_constructors
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-
 import 'result_page.dart';
 
 class InputPage extends StatefulWidget {
-  const InputPage({super.key});
+  final VoidCallback onThemeToggle;
+  final bool isDarkMode;
+
+const InputPage({required this.onThemeToggle, required this.isDarkMode, super.key});
 
   @override
   State<InputPage> createState() => _InputPageState();
 }
 
 class _InputPageState extends State<InputPage> {
-  final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  final _weightController = TextEditingController();
-  final _heightController = TextEditingController();
-
-  String? _selectedCategory;
-
-  final List<String> _categories = [
-    'Anak-anak',
-    'Remaja',
-    'Dewasa',
-  ];
+  double _weight = 60;
+  double _height = 165;
+  String _gender = 'Laki-laki';
+  String _category = 'Dewasa'; // Default kategori kembali ke Dewasa
 
   @override
   void dispose() {
-    // Menghindari kebocoran memori (memory leak) saat halaman ditutup
     _nameController.dispose();
-    _weightController.dispose();
-    _heightController.dispose();
     super.dispose();
   }
 
-  String _selectedGender = 'Laki-laki';
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Kalkulator BMI"),
+        title: const Text("Kalkulator BMI"),
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: Icon(widget.isDarkMode ? Icons.light_mode : Icons.dark_mode),
+            onPressed: widget.onThemeToggle, // Fungsi ganti tema dari main.dart
+          )
+        ],
       ),
-      body: Form(
-        key: _formKey,
-        child: Padding(
-          padding: EdgeInsets.all(16),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-              // TextFormField untuk nama
-              TextFormField(
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Mohon isi data ini'; // Pesan error jika kosong
-                  }
-                  return null; // Valid jika isi
-                },
-                controller: _nameController,
-                decoration: InputDecoration(
-                  labelText: 'Nama Lengkap',
-                  hintText: 'Masukkan nama...',
-                  prefixIcon: Icon(Icons.person),
-                  border: OutlineInputBorder(),
-                ),
-                textCapitalization: TextCapitalization.words,
-              ),
-              SizedBox(height: 30),
-              TextFormField(
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Mohon isi data ini'; // Pesan error jika kosong
-                  }
-                  return null; // Valid jika isi
-                },
-                controller: _weightController,
-                decoration: InputDecoration(
-                  labelText: 'Berat Badan',
-                  hintText: 'Contoh: 65',
-                  suffixText: 'kg',
-                  border: OutlineInputBorder(),
-                ),
-                keyboardType: TextInputType.number,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                ],
-              ),
-              SizedBox(height: 30),
-              TextFormField(
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Mohon isi data ini'; // Pesan error jika kosong
-                  }
-                  return null; // Valid jika isi
-                },
-                controller: _heightController,
-                decoration: InputDecoration(
-                  labelText: 'Tinggi Badan',
-                  hintText: 'Contoh: 170',
-                  suffixText: 'cm',
-                  border: OutlineInputBorder(),
-                ),
-                keyboardType: TextInputType.number,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                ],
-              ),
-              SizedBox(height: 30),
-              DropdownButtonFormField<String>(
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Mohon isi data ini'; // Pesan error jika kosong
-                  }
-                  return null; // Valid jika isi
-                },
-                value: _selectedCategory,
-                decoration: InputDecoration(
-                  labelText: 'Kategori Usia',
-                  border: OutlineInputBorder(),
-                ),
-                hint: Text('Pilih kategori...'),
-                items: _categories.map((category) {
-                  return DropdownMenuItem(
-                    value: category,
-                    child: Text(category),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _selectedCategory = value;
-                  });
-                },
-              ),
-              SizedBox(height: 30),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Jenis Kelamin',
-                    style: TextStyle(fontWeight: FontWeight.w500),
-                  ),
-                  Row(
-                    children: [
-                      Radio<String>(
-                        value: 'Laki-laki',        // nilai pilihan ini
-                        groupValue: _selectedGender, // nilai yang sedang dipilih
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedGender = value ?? 'Laki-laki';
-                          });
-                        },
-                      ),
-                      Text('Laki-laki'),
-                      SizedBox(width: 20),
-                      Radio<String>(
-                        value: 'Perempuan',         // nilai pilihan ini
-                        groupValue: _selectedGender, // nilai yang sedang dipilih
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedGender = value ?? 'Laki-laki';
-                          });
-                        },
-                      ),
-                      Text('Perempuan'),
-                    ],
-                  ),
-                ],
-              ),
-              GestureDetector( //perbaharui tombol hitung
-                onTap: () {
-                  if (_formKey.currentState!.validate()) {
-                    final nama = _nameController.text;
-                    // Menggunakan tryParse agar lebih aman dari crash
-                    final berat = double.tryParse(_weightController.text) ?? 0.0;
-                    final tinggiCm = double.tryParse(_heightController.text) ?? 0.0;
-                    
-                    // Menghindari pembagian dengan nol (Error Infinity / NaN)
-                    if (tinggiCm > 0) {
-                      final tinggiM = tinggiCm / 100;
-                      final bmi = berat / (tinggiM * tinggiM);
-                      
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ResultPage(
-                            nama: nama,
-                            bmi: bmi,
-                            gender: _selectedGender,
-                            kategori: _selectedCategory!,
-                          ),
-                        ),
-                      );
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Tinggi badan tidak valid')),
-                      );
-                    }
-                  }
-                },
-                child: Container(
-                  margin: EdgeInsets.only(top: 50),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    color: Colors.blue,
-                  ),
-                  width: double.infinity,
-                  height: 50,
-                  child: Center(
-                    child: Text(
-                      "Hitung",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            TextField(
+              controller: _nameController,
+              decoration: const InputDecoration(labelText: "Nama", border: OutlineInputBorder()),
             ),
+            const SizedBox(height: 25),
+            _labelValue("Tinggi Badan", "${_height.toInt()} cm"),
+            Slider(value: _height, min: 100, max: 220, onChanged: (v) => setState(() => _height = v)),
+            const SizedBox(height: 20),
+            _labelValue("Berat Badan", "${_weight.toInt()} kg"),
+            Slider(value: _weight, min: 30, max: 150, onChanged: (v) => setState(() => _weight = v)),
+            const SizedBox(height: 25),
+            
+            // MENGEMBALIKAN DROPDOWN KATEGORI
+            DropdownButtonFormField<String>(
+              // ignore: deprecated_member_use
+              value: _category,
+              decoration: const InputDecoration(labelText: "Kategori Usia", border: OutlineInputBorder()),
+              items: ['Anak-anak', 'Remaja', 'Dewasa'].map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+              onChanged: (v) => setState(() => _category = v!),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                _chip("Laki-laki"), const SizedBox(width: 10),
+                _chip("Perempuan"),
+              ],
+            ),
+            const SizedBox(height: 40),
+            SizedBox(
+              width: double.infinity,
+              height: 55,
+              child: ElevatedButton(
+                onPressed: () {
+                  final bmi = _weight / ((_height / 100) * (_height / 100));
+                  Navigator.push(context, MaterialPageRoute(builder: (c) => ResultPage(
+                    nama: _nameController.text.isEmpty ? "User" : _nameController.text,
+                    bmi: bmi, gender: _gender, kategori: _category,
+                  )));
+                },
+                child: const Text("HITUNG"),
+              ),
+            ),
+          ],
         ),
-      ),
       ),
     );
   }
+
+  Widget _labelValue(String t, String v) => Row(
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    children: [Text(t), Text(v, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold))],
+  );
+
+  Widget _chip(String l) => ChoiceChip(
+    label: Text(l), selected: _gender == l, onSelected: (s) => setState(() => _gender = l),
+  );
 }

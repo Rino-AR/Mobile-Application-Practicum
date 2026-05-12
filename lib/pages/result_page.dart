@@ -1,89 +1,63 @@
-// ignore_for_file: prefer_const_constructors, unnecessary_string_interpolations
-
 import 'package:flutter/material.dart';
 
 class ResultPage extends StatelessWidget {
   final String nama, gender, kategori;
   final double bmi;
 
-  const ResultPage(
-      {required this.nama,
-      required this.bmi,
-      required this.gender,
-      required this.kategori,
-      super.key});
-
-  String _getKategori() {
-    if (bmi < 18.5) return 'Kurus';
-    if (bmi < 25.0) return 'Normal';
-    if (bmi < 30.0) return 'Gemuk / Overweight'; // Logika BMI diperbaiki di sini
-    return "Obesitas";
-  }
+  const ResultPage({required this.nama, required this.bmi, required this.gender, required this.kategori, super.key});
 
   @override
   Widget build(BuildContext context) {
+    // Penentuan warna berdasarkan hasil BMI
+    Color statusColor = bmi < 18.5 ? Colors.blue : bmi < 25 ? Colors.green : bmi < 30 ? Colors.orange : Colors.red;
+    String statusText = bmi < 18.5 ? "Kurus" : bmi < 25 ? "Normal" : bmi < 30 ? "Overweight" : "Obesitas";
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Hasil BMI"),
-        leading: BackButton(),
-      ),
-      body: Center(
+      appBar: AppBar(title: const Text("Hasil")),
+      body: Padding(
+        padding: const EdgeInsets.all(25),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            SizedBox(height: 120),
-            Text(
-              "$nama",
-              style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+            Text(nama, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+            Text("$gender | $kategori", style: TextStyle(color: Theme.of(context).hintColor)),
+            const SizedBox(height: 30),
+            Text(bmi.toStringAsFixed(1), style: TextStyle(fontSize: 80, fontWeight: FontWeight.bold, color: statusColor)),
+            Text(statusText, style: TextStyle(fontSize: 24, color: statusColor)),
+            const SizedBox(height: 40),
+            
+            // GAUGE BAR ALA HALODOC
+            Row(
+              children: [
+                _bar(Colors.blue), _bar(Colors.green), _bar(Colors.orange), _bar(Colors.red),
+              ],
             ),
-            SizedBox(height: 10),
-            // Menampilkan data yang sebelumnya dikirim tapi tidak dimanfaatkan
-            Text(
-              "$gender | Usia: $kategori",
-              style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+            Align(
+              alignment: Alignment(
+                // Kita hitung rasionya dulu, lalu baru di-clamp rasionya antara 0.0 - 1.0
+                ((((bmi - 15) / (40 - 15)).clamp(0.0, 1.0)) * 2) - 1, 
+                0,
+              ),
+              child: const Icon(Icons.arrow_drop_up, size: 35),
             ),
-            SizedBox(height: 30),
-            Text(
-              "${bmi.toStringAsFixed(1)}",
-              style: TextStyle(
-                fontSize: 50,
-                color: Colors.blue,
-                fontWeight: FontWeight.bold,
+            const SizedBox(height: 30),
+            
+            // SARAN KESEHATAN
+            Container(
+              padding: const EdgeInsets.all(15),
+              // ignore: deprecated_member_use
+              decoration: BoxDecoration(color: Colors.grey.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+              child: Text(
+                statusText == "Normal" ? "Luar biasa! Pertahankan berat badan ideal Anda." : "Perhatikan pola makan Anda dan konsultasikan ke dokter jika perlu.",
+                textAlign: TextAlign.center,
               ),
             ),
-            SizedBox(height: 20),
-            Text(
-              _getKategori(),
-              style: TextStyle(
-                fontSize: 30,
-              ),
-            ),
-            GestureDetector(
-              onTap: () {
-                Navigator.pop(context);
-              },
-              child: Container(
-                margin: EdgeInsets.only(top: 50, left: 24, right: 24),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  color: Colors.blue,
-                ),
-                width: double.infinity,
-                height: 50,
-                child: Center(
-                  child: Text(
-                    "Hitung Ulang",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                    ),
-                  ),
-                ),
-              ),
-            ),
+            const Spacer(),
+            ElevatedButton(onPressed: () => Navigator.pop(context), child: const Text("Kembali")),
           ],
         ),
       ),
     );
   }
+
+  Widget _bar(Color c) => Expanded(child: Container(height: 10, color: c, margin: const EdgeInsets.symmetric(horizontal: 1)));
 }

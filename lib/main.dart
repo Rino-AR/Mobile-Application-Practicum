@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+
 import 'pages/input_page.dart';
+import 'utils/theme.dart';
 
 void main() {
-  runApp(const MyApp()); // Pastikan tidak ada kata 'const' di sini
+  runApp(const MyApp());
 }
 
 class MyApp extends StatefulWidget {
@@ -17,7 +19,8 @@ class _MyAppState extends State<MyApp> {
 
   void _toggleTheme() {
     setState(() {
-      _themeMode = _themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
+      _themeMode =
+          _themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
     });
   }
 
@@ -25,22 +28,13 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'BMI Modern',
+      title: 'Kalkulator BMI',
       themeMode: _themeMode,
-      theme: ThemeData(
-        brightness: Brightness.light,
-        primarySwatch: Colors.blue,
-        scaffoldBackgroundColor: Colors.white,
-      ),
-      darkTheme: ThemeData(
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF121212),
-        primarySwatch: Colors.blue,
-      ),
-      // DI SINI KUNCINYA: Mengirimkan parameter yang diwajibkan ke InputPage
+      theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
       home: InputPage(
-        onThemeToggle: _toggleTheme, 
-        isDarkMode: _themeMode == ThemeMode.dark
+        onThemeToggle: _toggleTheme,
+        isDarkMode: _themeMode == ThemeMode.dark,
       ),
     );
   }
